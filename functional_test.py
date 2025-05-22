@@ -35,14 +35,15 @@ class NewVisitorTest(unittest.TestCase):
         
         # 他按下回车键，页面更新了
         self.browser.find_element(By.ID, 'id_list_table')  # (#1)
+        inputbox.send_keys('Give a gift to Lisi')
         inputbox.send_keys(Keys.ENTER)  # (#3)
-        time.sleep(1)  # (#4)
+        time.sleep(10)  # (#4)
 
         # 页面中显示了他输入的“1: Buy flowers”
         table = self.browser.find_element(By.ID, 'id_list_table')  # (#1)
         rows = table.find_elements(By.TAG_NAME, 'tr')  # (#1)
         self.assertIn('1: Buy flowers', [row.text for row in rows])  # (#1)
-
+        self.assertIn('2:Give a gidt to Lisi',[row.text for row in rows])
         # 页面中显示了一个文本输入框，可以输入其他待办事项
         # 他输入了“gift to girlfriend”
         inputbox = self.browser.find_element(By.ID, 'id_new_item')  # (#2)
