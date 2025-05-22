@@ -6,7 +6,6 @@ from django.template.loader import render_to_string
 from lists.models import Item
 
 class ItemModelTest(TestCase):
-    
     def test_saving_and_retrieving_items(self):
         first_item = Item()
         first_item.text = 'The first list item'
@@ -25,13 +24,6 @@ class ItemModelTest(TestCase):
         self.assertEqual(second_saved_item.text, 'Item the second')
 
 class HomePageTest(TestCase):
-    def test_displays_all_list_items(self):
-        Item.objects.create(text='itemey 1')
-        Item.objects.create(text='itemey 2')
-        response = self.client.get('/')
-        self.assertIn('itemey 1', response.content.decode())
-        self.assertIn('itemey 2', response.content.decode())
-        
     def test_uses_home_template(self):
         response = self.client.get('/')
         self.assertTemplateUsed(response, 'home.html')
@@ -46,9 +38,24 @@ class HomePageTest(TestCase):
     def test_redirects_after_POST(self):
         response = self.client.post('/', data={'item_text': 'A new list item'})
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response['location'], '/')
+        self.assertEqual(response['location'], '/lists/the-new-page/')
 
     def test_only_saves_items_when_necessary(self):
         self.client.get('/')
         self.assertEqual(Item.objects.count(), 0)
-# Create your tests here.
+
+class ListViewTest(TestCase):
+    def test_uses_list_template(self):
+        response = self.client.get('/lists/the-new-page/')
+        self.assertTemplateUsed(response, 'list.html')
+
+    def test_displays_all_list_items(self):
+        Item.objects.create(text='itemey 1')  # 创建测试项1
+        Item.objects.create(text='itemey 2')  # 创建测试项2
+
+        response = self.client.get('/lists/the-new-page/')  # 获取列表页响应
+
+        self.assertContains(response, 'itemey 1')  # 验证项1显示
+        self.assertContains(response, 'itemey 2')  # (1)验证项2显示
+
+
