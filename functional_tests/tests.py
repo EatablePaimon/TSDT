@@ -3,10 +3,12 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 import time
 from selenium.webdriver.common.by import By
-from django.test import LiveServerTestCase
+from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from selenium.common.exceptions import WebDriverException
 
-class NewVisitorTest(LiveServerTestCase):
+MAX_WAIT = 10 
+
+class NewVisitorTest(StaticLiveServerTestCase):
     def setUp(self):
         self.browser = webdriver.Chrome()
 
@@ -22,7 +24,7 @@ class NewVisitorTest(LiveServerTestCase):
                 self.assertIn(row_text, [row.text for row in rows])
                 return  # (4)
             except (AssertionError, WebDriverException) as e:  # (5)
-                if time.time() - start_time > MAX_WBITS:  # (6)
+                if time.time() - start_time > MAX_WAIT:  # (6)
                     raise e  # (6)
                 time.sleep(0.5)  # (5)
 
