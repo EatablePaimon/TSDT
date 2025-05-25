@@ -26,24 +26,24 @@ def _get_latest_source(source_folder):
     else:
         run(f'git clone {REPO_URL} {source_folder}')  # (1)
         
-    current_commit = local('git log -n 1 --format=%H', capture=True)  # (2)
+    current_commit = local("git log -n 1 --format=%H", capture=True)  # (2)
     run(f'cd {source_folder} && git reset --hard {current_commit}')  # (3)
 
 def _update_settings(source_folder, site_name):
     settings_path = source_folder + '/notes/settings.py'
     sed(settings_path, 'DEBUG = True', 'DEBUG = False')  # (1)
-    sed(settings_path, 'ALLOWED_HOSTS = *', f'ALLOWED_HOSTS = ["{site_name}"]')  # (2)
+    sed(settings_path, 'ALLOWED_HOSTS = .+$', f'ALLOWED_HOSTS = ["{site_name}"]')  # (2)
     
     secret_key_file = source_folder + '/notes/secret_key.py'  # (3)
     if not exists(secret_key_file):
-        chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+=-[]{}|;:,.<>?'
+        chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*(-_=+)'
         key = ''.join(random.SystemRandom().choice(chars) for _ in range(50))
         append(secret_key_file, f'SECRET_KEY = "{key}"')  # (4)
     
-    append(settings_path, f'\nfrom .secret_key import SECRET_KEY')  # (5)
+    append(settings_path, '\nfrom .secret_key import SECRET_KEY')  # (5)
 
 def _update_virtualenv(source_folder):
-    virtualenv_folder = source_folder + '/.virtualenv'
+    virtualenv_folder = source_folder + '/../virtualenv'
     if not exists(virtualenv_folder + '/bin/pip'):  # (1)
         run(f'python3.9 -m venv {virtualenv_folder}')
     run(f'{virtualenv_folder}/bin/pip install -r {source_folder}/requirements.txt')  # (2)
@@ -51,13 +51,13 @@ def _update_virtualenv(source_folder):
 def _update_static_files(source_folder):
     run(
         f'cd {source_folder} '  # (1)
-        '&& ../virtualenv/bin/python manage.py collectstatic --noinput'
+        '&& ../virtualenv/bin/python3.9 manage.py collectstatic --noinput'
     )
 
 def _update_database(source_folder):
     run(
         f'cd {source_folder} '
-        '&& .virtualenv/bin/python manage.py migrate --noinput'
+        '&& ../virtualenv/bin/python manage.py migrate --noinput'
     )
 
 if __name__ == "__main__":
